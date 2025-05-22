@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Пользователи</title>
+</head>
+<body>
+    <div>
+        <a href="create_user.html">Создать пользователя</a>
+        <a href="users.html">Все пользовтели</a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Имя</th>
+                <th>Фамилия</th>
+                <th>Дата рождения</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</body>
+<script>
+    let tbody = document.querySelector("tbody");
+    get_data();
+    async function get_data() {
+        let response = await fetch("http://127.0.0.1:8000/users");
+        let data = await response.json();
+        
+        data.forEach(user => {
+            let tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${user.id.substring(0,8)}</td>
+                <td>${user.email}</td>
+                <td>${user.name}</td>
+                <td>${user.surname}</td>
+                <td>${user.birthdate.substring(0,10)}</td>
+                <td><button id=${user.id} onclick="delete_user(this.id)">Удалить</button></td>
+                <td><a href="update_user.html?id=${user.id}">Обновить</a></td>`
+            tbody.append(tr);
+        });
+    }
+
+    async function delete_user(id) {
+        await fetch(`http://127.0.0.1:8000/users/${id}`, { method : "DELETE"});
+        location.reload();
+    }
+</script>
+</html>

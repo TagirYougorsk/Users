@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Обновить пользователя</title>
+</head>
+<body>
+    <div>
+        <a href="create_user.html">Создать пользователя</a>
+        <a href="users.html">Все пользовтели</a>
+    </div>
+    <label for="email">Электронная почта</label>
+    <input id="email" type="email"></br>
+
+    <label for="password">Пароль</label>
+    <input id="password" type="text"></br>
+
+    <label for="name">Имя</label>
+    <input id="name" type="text"></br>
+
+    <label for="surname">Фамилия</label>
+    <input id="surname" type="text"></br>
+
+    <label for="birthdate">Дата рождения</label>
+    <input id="birthdate" type="date"></br>
+    <button onclick="update_user()">Обновить</button>
+</body>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    get_user();
+
+    async function get_user() {
+        let response = await fetch(`http://127.0.0.1:8000/users/${id}`);
+        let data = await response.json();
+
+        let email = document.getElementById("email");
+        email.setAttribute("placeholder", data.email);
+
+        let password = document.getElementById("password");
+
+        let name = document.getElementById("name");
+        name.setAttribute("placeholder", data.name);
+
+        let surname = document.getElementById("surname");
+        surname.setAttribute("placeholder", data.surname);
+        
+        let birthdate = document.getElementById("birthdate");
+        birthdate.value = data.birthdate.substring(0,10);
+    }
+    async function update_user() {
+        let email = document.getElementById("email").value;
+        let password = document.getElementById("password").value;
+        let name = document.getElementById("name").value;
+        let surname = document.getElementById("surname").value;
+        let birthdate = document.getElementById("birthdate").value;
+        
+        let response = await fetch(`http://127.0.0.1:8000/users/${id}`, {
+            method : "PUT",
+            headers : { "Content-Type" : "application/json"},
+            body: JSON.stringify({
+                email : email == "" ? null : email,
+                password : password == "" ? null : password,
+                name : name == "" ? null : name,
+                surname : surname == "" ? null : surname,
+                birthdate : birthdate == "" ? null : birthdate
+            })
+        })
+        let message = await response.text();
+        alert(message);
+    }
+</script>
+</html>
