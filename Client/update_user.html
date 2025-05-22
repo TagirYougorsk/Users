@@ -2,71 +2,138 @@
 <html>
 <head>
     <title>Обновить пользователя</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        div { margin-bottom: 20px; }
+        a { margin-right: 15px; color: #0066cc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        label { display: inline-block; width: 180px; margin: 8px 0; }
+        input { 
+            padding: 8px; 
+            width: 250px; 
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button { 
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+        button:hover { background-color: #0b7dda; }
+        .hint { 
+            color: #666; 
+            font-size: 12px;
+            margin-left: 185px;
+            margin-top: -8px;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
     <div>
         <a href="create_user.html">Создать пользователя</a>
-        <a href="users.html">Все пользовтели</a>
+        <a href="users.html">Все пользователи</a>
     </div>
-    <label for="email">Электронная почта</label>
-    <input id="email" type="email"></br>
+    
+    <h2>Редактирование пользователя</h2>
+    
+    <label for="email">Электронная почта:</label>
+    <input id="email" type="email">
+    <div class="hint">Оставьте пустым, чтобы не изменять</div>
 
-    <label for="password">Пароль</label>
-    <input id="password" type="text"></br>
+    <label for="password">Пароль:</label>
+    <input id="password" type="password">
+    <div class="hint">Оставьте пустым, чтобы не изменять (минимум 6 символов)</div>
 
-    <label for="name">Имя</label>
-    <input id="name" type="text"></br>
+    <label for="name">Имя:</label>
+    <input id="name" type="text">
 
-    <label for="surname">Фамилия</label>
-    <input id="surname" type="text"></br>
+    <label for="surname">Фамилия:</label>
+    <input id="surname" type="text">
 
-    <label for="birthdate">Дата рождения</label>
-    <input id="birthdate" type="date"></br>
-    <button onclick="update_user()">Обновить</button>
+    <label for="birthdate">Дата рождения:</label>
+    <input id="birthdate" type="date">
+    
+    <button onclick="update_user()">Сохранить изменения</button>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        let currentUser = {}; // Для хранения текущих данных
+
+        // Загрузка данных пользователя
+        async function loadUserData() {
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/users/${id}`);
+                if (!response.ok) throw new Error("Ошибка загрузки данных");
+                
+                currentUser = await response.json();
+                
+                document.getElementById("email").placeholder = currentUser.email;
+                document.getElementById("name").placeholder = currentUser.name;
+                document.getElementById("surname").placeholder = currentUser.surname;
+                document.getElementById("birthdate").value = currentUser.birthdate.substring(0,10);
+            } catch (error) {
+                alert(`Ошибка: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        // Валидация формы
+        function validateForm() {
+            const password = document.getElementById("password").value;
+            if (password && password.length < 6) {
+                alert("Пароль должен содержать минимум 6 символов");
+                return false;
+            }
+            return true;
+        }
+
+        // Обновление данных пользователя
+        async function update_user() {
+            if (!validateForm()) return;
+            if (!confirm("Вы уверены, что хотите сохранить изменения?")) return;
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/users/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: getValueOrNull("email"),
+                        password: getValueOrNull("password"),
+                        name: getValueOrNull("name"),
+                        surname: getValueOrNull("surname"),
+                        birthdate: getValueOrNull("birthdate")
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || "Ошибка сервера");
+                }
+
+                alert("Данные успешно обновлены!");
+                window.location.href = "users.html";
+            } catch (error) {
+                alert(`Ошибка: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        // Возвращает значение поля или null если пустое
+        function getValueOrNull(fieldId) {
+            const value = document.getElementById(fieldId).value.trim();
+            return value === "" ? null : value;
+        }
+
+        // Загружаем данные при открытии страницы
+        document.addEventListener("DOMContentLoaded", loadUserData);
+    </script>
 </body>
-<script>
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
-    get_user();
-
-    async function get_user() {
-        let response = await fetch(`http://127.0.0.1:8000/users/${id}`);
-        let data = await response.json();
-
-        let email = document.getElementById("email");
-        email.setAttribute("placeholder", data.email);
-
-        let password = document.getElementById("password");
-
-        let name = document.getElementById("name");
-        name.setAttribute("placeholder", data.name);
-
-        let surname = document.getElementById("surname");
-        surname.setAttribute("placeholder", data.surname);
-        
-        let birthdate = document.getElementById("birthdate");
-        birthdate.value = data.birthdate.substring(0,10);
-    }
-    async function update_user() {
-        let email = document.getElementById("email").value;
-        let password = document.getElementById("password").value;
-        let name = document.getElementById("name").value;
-        let surname = document.getElementById("surname").value;
-        let birthdate = document.getElementById("birthdate").value;
-        
-        let response = await fetch(`http://127.0.0.1:8000/users/${id}`, {
-            method : "PUT",
-            headers : { "Content-Type" : "application/json"},
-            body: JSON.stringify({
-                email : email == "" ? null : email,
-                password : password == "" ? null : password,
-                name : name == "" ? null : name,
-                surname : surname == "" ? null : surname,
-                birthdate : birthdate == "" ? null : birthdate
-            })
-        })
-        let message = await response.text();
-        alert(message);
-    }
-</script>
 </html>

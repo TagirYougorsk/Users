@@ -2,49 +2,105 @@
 <html>
 <head>
     <title>Создать пользователя</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        div { margin-bottom: 20px; }
+        a { margin-right: 15px; color: #0066cc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        label { display: inline-block; width: 150px; margin: 10px 0; }
+        input { padding: 8px; width: 250px; margin-bottom: 10px; }
+        button { 
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #45a049; }
+        button:disabled { background-color: #cccccc; }
+    </style>
 </head>
 <body>
     <div>
         <a href="create_user.html">Создать пользователя</a>
-        <a href="users.html">Все пользовтели</a>
+        <a href="users.html">Все пользователи</a>
     </div>
+    
     <label for="email">Электронная почта</label>
-    <input id="email" type="email"></br>
+    <input id="email" type="email" required></br>
 
     <label for="password">Пароль</label>
-    <input id="password" type="text"></br>
+    <input id="password" type="password" required minlength="6"></br>
+
+    <label for="confirm_password">Подтвердите пароль</label>
+    <input id="confirm_password" type="password" required></br>
 
     <label for="name">Имя</label>
-    <input id="name" type="text"></br>
+    <input id="name" type="text" required></br>
 
     <label for="surname">Фамилия</label>
-    <input id="surname" type="text"></br>
+    <input id="surname" type="text" required></br>
 
     <label for="birthdate">Дата рождения</label>
-    <input id="birthdate" type="date"></br>
+    <input id="birthdate" type="date" required></br>
+    
     <button onclick="create_user()">Создать</button>
+
+    <script>
+        function validateForm() {
+            const email = document.getElementById("email").value;
+            if (!email.includes("@")) {
+                alert("Некорректный email");
+                return false;
+            }
+            if (document.getElementById("password").value.length < 6) {
+                alert("Пароль должен содержать минимум 6 символов");
+                return false;
+            }
+            if (document.getElementById("password").value !== 
+                document.getElementById("confirm_password").value) {
+                alert("Пароли не совпадают");
+                return false;
+            }
+            return true;
+        }
+
+        async function create_user() {
+            const btn = document.querySelector("button");
+            const originalText = btn.textContent;
+            try {
+                if (!validateForm()) return;
+                
+                btn.textContent = "Создание...";
+                btn.disabled = true;
+                
+                const response = await fetch("http://127.0.0.1:8000/users", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: document.getElementById("email").value,
+                        password: document.getElementById("password").value,
+                        name: document.getElementById("name").value,
+                        surname: document.getElementById("surname").value,
+                        birthdate: document.getElementById("birthdate").value
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || "Ошибка сервера");
+                }
+
+                alert("Пользователь успешно создан!");
+                window.location.href = "users.html";
+            } catch (error) {
+                alert(`Ошибка: ${error.message}`);
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
 </body>
-<script>
-    async function create_user() {
-        let email = document.getElementById("email").value;
-        let password = document.getElementById("password").value;
-        let name = document.getElementById("name").value;
-        let surname = document.getElementById("surname").value;
-        let birthdate = document.getElementById("birthdate").value;
-        
-        let response = await fetch("http://127.0.0.1:8000/users", {
-            method : "POST",
-            headers : { "Content-Type" : "application/json"},
-            body: JSON.stringify({
-                email : email,
-                password : password,
-                name : name,
-                surname : surname,
-                birthdate : birthdate
-            })
-        })
-        let message = await response.text();
-        alert(message);
-    }
-</script>
 </html>

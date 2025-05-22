@@ -6,11 +6,11 @@ from UserRepository import UserRepository
 def init_data(user_repo : UserRepository):
     #region init_data
     user_repo.add(RegisterUserModel( 
-        email="123@mail.ru", 
-        password="123aaaAAA", 
-        name="АААААА", 
-        surname="Первый",
-        birthdate=datetime(1999,3,4),
+        email="harasow@mail.ru", 
+        password="Q123w123_!", 
+        name="Tagir", 
+        surname="Kharasov",
+        birthdate=datetime(1984,6,8),
         gender="Мужской"))
 
     user_repo.add(RegisterUserModel( 
@@ -84,4 +84,7 @@ def init_data(user_repo : UserRepository):
         surname="Первый",
         birthdate=datetime(2003,3,4),
         gender="Женский"))
+    
+    
+   
     #endregion`
